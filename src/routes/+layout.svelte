@@ -12,7 +12,7 @@
 	<title>HyperHome - Control de Hipertrofia</title>
 </svelte:head>
 
-<div class="min-h-screen flex flex-col bg-white text-black dark:bg-black dark:text-white transition-colors duration-300 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+<div class="min-h-screen flex flex-col transition-colors duration-300 antialiased">
 	<div class="w-full max-w-md mx-auto min-h-screen flex flex-col relative pb-24 shadow-2xl">
 		<NavBar />
 		

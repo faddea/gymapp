@@ -1,28 +1,14 @@
 <script lang="ts">
 	import { diasStore } from '$lib/stores/entrenamiento';
-	import { TrendingUp, Award, Zap } from 'lucide-svelte';
+	import { TrendingUp } from 'lucide-svelte';
 </script>
 
 <div class="w-full flex flex-col gap-5">
 	<div>
 		<h2 class="text-2xl font-extrabold tracking-tight">Progreso & Cargas</h2>
-		<p class="text-xs opacity-60 font-medium">Registro de marcas, 1RM estimados y sobrecarga</p>
+		<p class="text-xs opacity-60 font-medium">Registro de cargas y sobrecarga progresiva</p>
 	</div>
 
-	<!-- Card destacada 1RM -->
-	<div class="glass-card p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden">
-		<div class="flex justify-between items-center">
-			<span class="text-[10px] font-extrabold uppercase tracking-wider opacity-60">Marca Máxima Estimada (1RM)</span>
-			<Award class="w-5 h-5 text-amber-500" />
-		</div>
-		<div class="flex justify-between items-end mt-1">
-			<div>
-				<span class="text-3xl font-extrabold tracking-tight">32.5 kg</span>
-				<span class="text-xs text-emerald-500 font-bold block mt-0.5">+2.5 kg respecto al mes pasado</span>
-			</div>
-			<span class="text-xs font-semibold opacity-70">Press Mancuerna</span>
-		</div>
-	</div>
 
 	<!-- Lista por Días -->
 	<div class="space-y-4">
