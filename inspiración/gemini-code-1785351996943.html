@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es" class="light-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperHome - Control de Hipertrofia</title>
+        
+    <!-- Importar la fuente Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+        
+    <!-- Incluir Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+        
+    <!-- Incluir Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.75)',
+                            dark: 'rgba(18, 18, 18, 0.75)',
+                            borderLight: 'rgba(0, 0, 0, 0.08)',
+                            borderDark: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+        }
+        html.light-mode {
+            background-color: #f8f9fa;
+            color: #000000;
+        }
+        html.dark-mode {
+            background-color: #050505;
+            color: #ffffff;
+        }
+        html.light-mode .glass-card {
+            background-color: theme('colors.glass.light');
+            border: 1px solid theme('colors.glass.borderLight');
+            box-shadow: theme('boxShadow.glass');
+        }
+        html.dark-mode .glass-card {
+            background-color: theme('colors.glass.dark');
+            border: 1px solid theme('colors.glass.borderDark');
+            box-shadow: theme('boxShadow.glass');
+        }
+        #theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: flex;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-slate-50 text-black transition-colors duration-300 dark:bg-black dark:text-white antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+
+    <!-- Control de Modo Manual -->
+    <button id="theme-toggle" class="glass-card text-xs font-semibold flex items-center gap-2 active:scale-95">
+        <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+        <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+        <span id="theme-text">Modo</span>
+    </button>
+
+    <!-- Barra de Navegación Superior -->
+    <nav class="glass-card sticky top-0 z-40 w-full px-6 py-4 flex items-center justify-between rounded-b-2xl">
+        <div class="flex flex-col">
+            <span class="text-[10px] font-bold tracking-widest opacity-60 uppercase" id="nav-subtitle">PROGRESO DIARIO</span>
+            <h1 class="text-xl font-bold tracking-tight uppercase" id="nav-title">HyperHome</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-transform" onclick="alert('Configuración de hipertrofia y notificaciones')">
+                <i data-lucide="sliders" class="w-4 h-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ================= CONTENIDO PRINCIPAL (SPA SCREENS) ================= -->
+    <main class="flex-grow p-6 flex flex-col items-center w-full max-w-md mx-auto pb-24">
+        
+        <!-- PANTALLA 1: INICIO -->
+        <div id="screen-home" class="screen active flex-col items-center gap-6 w-full">
+            <div class="w-full aspect-square glass-card rounded-2xl overflow-hidden relative group shadow-sm">
+                <img src="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?q=80&w=800&auto=format&fit=crop" 
+                     alt="Entrenamiento en Casa" class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-115">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+                <div class="absolute bottom-4 left-4 right-4 text-white">
+                    <span class="text-xs font-bold uppercase tracking-wider bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full">Fase Actual</span>
+                    <h3 class="text-lg font-bold mt-1">Sobrecarga Progresiva W4</h3>
+                </div>
+            </div>
+
+            <div class="w-full text-center">
+                <h2 class="text-2xl font-bold tracking-tight mb-1">Bloque: Fuerza e Hipertrofia</h2>
+                <p class="text-xs opacity-70 mb-6">Gestiona tus cargas, series efectivas y fallo muscular controlado.</p>
+                
+                <div class="grid grid-cols-2 gap-4 text-left">
+                    <!-- Iniciar rutina -->
+                    <button onclick="navigateTo('workout')" class="glass-card rounded-xl p-5 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98] col-span-2 border-l-4 border-l-black dark:border-l-white">
+                        <div class="flex justify-between items-start w-full">
+                            <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10">
+                                <i data-lucide="dumbbell" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-xs font-bold px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black rounded">HOY</span>
+                        </div>
+                        <div>
+                            <span class="block font-bold text-lg">Entrenar: Empuje / Pecho</span>
+                            <span class="text-xs opacity-60">Press Mancuernas, Flexiones, Eleva. Laterales</span>
+                        </div>
+                    </button>
+
+                    <!-- Historial -->
+                    <button onclick="navigateTo('progress')" class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10 self-start">
+                            <i data-lucide="history" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-sm">Historial Pesos</span>
+                            <span class="text-xs opacity-60">Tus 1RM y marcas</span>
+                        </div>
+                    </button>
+
+                    <!-- Editar Bloques -->
+                    <button onclick="navigateTo('calendar')" class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10 self-start">
+                            <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block font-semibold text-sm">Editar Bloques</span>
+                            <span class="text-xs opacity-60">Rutinas A/B/C</span>
+                        </div>
+                    </button>
+
+                    <!-- Estiramientos -->
+                    <button onclick="toggleMobilityModal(true)" class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98] col-span-2">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10">
+                                <i data-lucide="accessibility" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <span class="block font-semibold text-sm">Movilidad & Estiramientos</span>
+                                <span class="text-xs opacity-60">4 ejercicios de descarga rápida</span>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: RUTINA ACTIVA (WORKOUT) -->
+        <div id="screen-workout" class="screen flex-col w-full gap-4">
+            <div class="flex justify-between items-center bg-black/5 dark:bg-white/5 p-4 rounded-xl">
+                <div>
+                    <span class="text-xs font-bold opacity-60">RUTINA DEL DÍA</span>
+                    <h2 class="text-lg font-bold">Empuje / Pecho & Hombro</h2>
+                </div>
+                <div class="text-right">
+                    <span id="timer-display" class="text-xs font-mono font-bold bg-black text-white dark:bg-white dark:text-black px-2 py-1 rounded">Descanso: --</span>
+                </div>
+            </div>
+
+            <!-- Ejercicio 1 -->
+            <div class="glass-card p-4 rounded-xl flex flex-col gap-3">
+                <div class="flex justify-between items-center border-b pb-2 border-black/10 dark:border-white/10">
+                    <div>
+                        <h4 class="font-bold text-sm">1. Press Mancuernas Suelo</h4>
+                        <span class="text-xs opacity-60">RIR 1-2 | Descanso 90s</span>
+                    </div>
+                    <span class="text-xs font-bold bg-black/10 dark:bg-white/10 px-2 py-1 rounded">3 Series</span>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-bold w-12">Serie 1</span>
+                        <input type="number" value="24" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="kg">
+                        <span>kg x</span>
+                        <input type="number" value="10" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="reps">
+                        <span>reps</span>
+                        <button onclick="completeSet(this, 90)" class="p-2 bg-black text-white dark:bg-white dark:text-black rounded-lg active:scale-95">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-bold w-12">Serie 2</span>
+                        <input type="number" value="24" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="kg">
+                        <span>kg x</span>
+                        <input type="number" value="8" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="reps">
+                        <span>reps</span>
+                        <button onclick="completeSet(this, 90)" class="p-2 bg-black text-white dark:bg-white dark:text-black rounded-lg active:scale-95">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ejercicio 2 -->
+            <div class="glass-card p-4 rounded-xl flex flex-col gap-3">
+                <div class="flex justify-between items-center border-b pb-2 border-black/10 dark:border-white/10">
+                    <div>
+                        <h4 class="font-bold text-sm">2. Flexiones Deficitarias</h4>
+                        <span class="text-xs opacity-60">Al Fallo Técnico | Descanso 60s</span>
+                    </div>
+                    <span class="text-xs font-bold bg-black/10 dark:bg-white/10 px-2 py-1 rounded">2 Series</span>
+                </div>
+                
+                <div class="space-y-2 text-xs">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="font-bold w-12">Serie 1</span>
+                        <input type="number" value="0" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="kg">
+                        <span>kg x</span>
+                        <input type="number" value="15" class="w-16 p-1.5 rounded text-center bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/10 font-bold" placeholder="reps">
+                        <span>reps</span>
+                        <button onclick="completeSet(this, 60)" class="p-2 bg-black text-white dark:bg-white dark:text-black rounded-lg active:scale-95">
+                            <i data-lucide="check" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="finishWorkout()" class="w-full py-3 bg-black text-white dark:bg-white dark:text-black font-bold rounded-xl active:scale-98 transition-transform mt-2">
+                Finalizar Entrenamiento
+            </button>
+        </div>
+
+        <!-- PANTALLA 3: PROGRESO -->
+        <div id="screen-progress" class="screen flex-col w-full gap-4">
+            <h2 class="text-xl font-bold">Métricas y Progresión</h2>
+            <div class="glass-card p-4 rounded-xl">
+                <span class="text-xs font-bold opacity-60">MÁXIMO ESTIMADO (1RM)</span>
+                <div class="flex justify-between items-end mt-2">
+                    <div>
+                        <span class="text-3xl font-bold">32.5 kg</span>
+                        <span class="text-xs text-green-500 font-bold block">+2.5 kg este mes</span>
+                    </div>
+                    <span class="text-xs opacity-60">Press Mancuerna</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-xl flex flex-col gap-3">
+                <span class="text-xs font-bold opacity-60">VOLUMEN SEMANAL SLOTS</span>
+                <div class="space-y-2">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>Pecho (14 series)</span>
+                            <span class="font-bold">Óptimo</span>
+                        </div>
+                        <div class="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                            <div class="bg-black dark:bg-white h-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span>Hombro Lateral (10 series)</span>
+                            <span class="font-bold">Mantenimiento</span>
+                        </div>
+                        <div class="w-full bg-black/10 dark:bg-white/10 h-2 rounded-full overflow-hidden">
+                            <div class="bg-black dark:bg-white h-full" style="width: 55%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 4: AGENDA -->
+        <div id="screen-calendar" class="screen flex-col w-full gap-4">
+            <h2 class="text-xl font-bold">Programación Semanal</h2>
+            <div class="space-y-3">
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between border-l-4 border-l-black dark:border-l-white">
+                    <div>
+                        <span class="text-xs font-bold opacity-60">LUNES (HOY)</span>
+                        <h4 class="font-bold text-sm">Bloque A: Empuje & Pecho</h4>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 bg-black/10 dark:bg-white/10 rounded">Completado</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between opacity-70">
+                    <div>
+                        <span class="text-xs font-bold opacity-60">MARTES</span>
+                        <h4 class="font-bold text-sm">Bloque B: Tracción & Espalda</h4>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 bg-black/5 dark:bg-white/5 rounded">Pendiente</span>
+                </div>
+                <div class="glass-card p-4 rounded-xl flex items-center justify-between opacity-70">
+                    <div>
+                        <span class="text-xs font-bold opacity-60">MIÉRCOLES</span>
+                        <h4 class="font-bold text-sm">Descanso Activo / Movilidad</h4>
+                    </div>
+                    <span class="text-xs font-bold px-2 py-1 bg-black/5 dark:bg-white/5 rounded">Relax</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA 5: PERFIL -->
+        <div id="screen-user" class="screen flex-col w-full gap-4">
+            <div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center gap-3">
+                <div class="w-20 h-20 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center font-bold text-2xl border border-black/10 dark:border-white/10">
+                    HY
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg">Atleta HyperHome</h3>
+                    <span class="text-xs opacity-60">Enfocado en Hipertrofia Natural</span>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-xl space-y-3">
+                <div class="flex justify-between items-center text-sm border-b pb-2 border-black/10 dark:border-white/10">
+                    <span class="opacity-70">Peso Corporal</span>
+                    <span class="font-bold">78.4 kg</span>
+                </div>
+                <div class="flex justify-between items-center text-sm border-b pb-2 border-black/10 dark:border-white/10">
+                    <span class="opacity-70">Racha Actual</span>
+                    <span class="font-bold">4 Semanas</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="opacity-70">Frecuencia objetivo</span>
+                    <span class="font-bold">4 días / sem</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL ESTIRAMIENTOS Y MOVILIDAD -->
+    <div id="mobility-modal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="glass-card bg-white dark:bg-neutral-900 w-full max-w-sm rounded-2xl p-6 flex flex-col gap-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-lg">Rutina de Movilidad</h3>
+                <button onclick="toggleMobilityModal(false)" class="p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <p class="text-xs opacity-70">Realiza 45s por cada postura al finalizar la sesión:</p>
+            <ul class="space-y-3 text-xs">
+                <li class="p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                    <strong class="block text-sm">1. Extensión Torácica</strong>
+                    Mejora postura para preses de pecho.
+                </li>
+                <li class="p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                    <strong class="block text-sm">2. Estiramiento Pectoral en Pared</strong>
+                    Alivia la tensión del pectoral menor.
+                </li>
+                <li class="p-3 bg-black/5 dark:bg-white/5 rounded-lg">
+                    <strong class="block text-sm">3. Rotadores de Hombro</strong>
+                    Salud articular para prevenir pinzamientos.
+                </li>
+            </ul>
+            <button onclick="toggleMobilityModal(false)" class="w-full py-2 bg-black text-white dark:bg-white dark:text-black font-bold rounded-xl text-xs mt-2">
+                Cerrar
+            </button>
+        </div>
+    </div>
+
+    <!-- Botones de Navegación de la App (Sticky Footer) -->
+    <footer class="glass-card fixed bottom-0 z-40 w-full max-w-md left-1/2 -translate-x-1/2 px-4 py-3 flex items-center justify-around rounded-t-3xl border-t">
+        <button onclick="navigateTo('home')" id="nav-btn-home" class="nav-btn flex flex-col items-center gap-1 py-1 px-3 text-black dark:text-white font-bold transition-opacity">
+            <i data-lucide="home" class="w-5 h-5 stroke-[2.5px]"></i>
+            <span class="text-[10px] tracking-wide">Inicio</span>
+        </button>
+        <button onclick="navigateTo('progress')" id="nav-btn-progress" class="nav-btn flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Progreso</span>
+        </button>
+        <button onclick="navigateTo('calendar')" id="nav-btn-calendar" class="nav-btn flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Agenda</span>
+        </button>
+        <button onclick="navigateTo('user')" id="nav-btn-user" class="nav-btn flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Perfil</span>
+        </button>
+    </footer>
+
+    <!-- Script JS Interactividad -->
+    <script>
+        // Renderizar iconos
+        lucide.createIcons();
+
+        // 1. Control de Tema Oscuro / Claro
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        function applyMode(mode) {
+            htmlElement.classList.remove('light-mode', 'dark-mode');
+            htmlElement.classList.add(mode + '-mode');
+            if (mode === 'dark') {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', mode);
+        }
+
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        applyMode(savedTheme);
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentMode = htmlElement.classList.contains('dark-mode') ? 'dark' : 'light';
+            applyMode(currentMode === 'light' ? 'dark' : 'light');
+        });
+
+        // 2. Navegación SPA (Pantallas)
+        const screenTitles = {
+            'home': { title: 'HyperHome', subtitle: 'PROGRESO DIARIO' },
+            'workout': { title: 'Sesión Activa', subtitle: 'ENTRENAMIENTO' },
+            'progress': { title: 'Estadísticas', subtitle: 'ANALÍTICA' },
+            'calendar': { title: 'Planificación', subtitle: 'CALENDARIO' },
+            'user': { title: 'Mi Perfil', subtitle: 'CONFIGURACIÓN' }
+        };
+
+        function navigateTo(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const targetScreen = document.getElementById(`screen-${screenId}`);
+            if (targetScreen) targetScreen.classList.add('active');
+
+            // Actualizar estilo de navegación
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.add('opacity-50');
+                btn.classList.remove('font-bold');
+            });
+            
+            const activeNav = document.getElementById(`nav-btn-${screenId}`);
+            if (activeNav) {
+                activeNav.classList.remove('opacity-50');
+                activeNav.classList.add('font-bold');
+            }
+
+            // Actualizar Títulos de Nav Superior
+            if (screenTitles[screenId]) {
+                document.getElementById('nav-title').textContent = screenTitles[screenId].title;
+                document.getElementById('nav-subtitle').textContent = screenTitles[screenId].subtitle;
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // 3. Lógica de Entrenamiento & Temporizador
+        let timerInterval = null;
+
+        function completeSet(button, restSeconds) {
+            button.classList.toggle('bg-green-600');
+            button.classList.toggle('bg-black');
+            
+            // Iniciar temporizador
+            let secondsLeft = restSeconds;
+            const timerDisplay = document.getElementById('timer-display');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                secondsLeft--;
+                if (secondsLeft <= 0) {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "¡Tiempo completado!";
+                } else {
+                    timerDisplay.textContent = `Descanso: ${secondsLeft}s`;
+                }
+            }, 1000);
+        }
+
+        function finishWorkout() {
+            alert('¡Entrenamiento registrado con éxito! Tus datos se han guardado.');
+            navigateTo('home');
+        }
+
+        // 4. Modal Movilidad
+        function toggleMobilityModal(show) {
+            const modal = document.getElementById('mobility-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+    </script>
+</body>
+</html>

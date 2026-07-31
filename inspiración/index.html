@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es" class="light-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HyperHome - Control de Hipertrofia</title>
+    
+    <!-- Importar la fuente Montserrat -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Incluir Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Incluir Lucide Icons para los vectores limpios -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                    },
+                    colors: {
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.4)',
+                            dark: 'rgba(0, 0, 0, 0.55)',
+                            borderLight: 'rgba(255, 255, 255, 0.25)',
+                            borderDark: 'rgba(255, 255, 255, 0.08)',
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.08)',
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-card {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, transform 0.2s;
+        }
+
+        html.light-mode {
+            background-color: #ffffff;
+            color: #000000;
+        }
+        html.dark-mode {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
+        html.light-mode .glass-card {
+            background-color: theme('colors.glass.light');
+            border: 1px solid theme('colors.glass.borderLight');
+            box-shadow: theme('boxShadow.glass');
+        }
+
+        html.dark-mode .glass-card {
+            background-color: theme('colors.glass.dark');
+            border: 1px solid theme('colors.glass.borderDark');
+            box-shadow: theme('boxShadow.glass');
+        }
+
+        #theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 50;
+            padding: 0.5rem 0.75rem;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-white text-black transition-colors duration-300 dark:bg-black dark:text-white antialiased">
+
+    <!-- Control de Modo Manual -->
+    <button id="theme-toggle" class="glass-card text-xs font-600 flex items-center gap-2">
+        <i data-lucide="sun" class="w-4 h-4 block dark:hidden"></i>
+        <i data-lucide="moon" class="w-4 h-4 hidden dark:block"></i>
+        <span>Modo</span>
+    </button>
+
+    <!-- Barra de Navegación Superior -->
+    <nav class="glass-card sticky top-0 z-40 w-full px-6 py-4 flex items-center justify-between rounded-b-2xl">
+        <div class="flex flex-col">
+            <span class="text-xs font-500 opacity-60">PROGRESO DIARIO</span>
+            <h1 class="text-xl font-700 tracking-tight uppercase">HyperHome</h1>
+        </div>
+        <div class="flex items-center gap-3">
+            <button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                <i data-lucide="bell" class="w-5 h-5"></i>
+            </button>
+            <button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10">
+                <i data-lucide="sliders" class="w-5 h-5"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow p-6 flex flex-col items-center gap-6 w-full max-w-md mx-auto">
+
+        <!-- Imagen Cuadrada de Entrenamiento Requerida -->
+        <div class="w-full aspect-square glass-card rounded-2xl overflow-hidden relative group">
+            <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNVPVKU9N5pXts8w4REHzK1-bdcR8nM9LbdFLKIAinQ&s=10" 
+                 alt="Entrenamiento en Casa" class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-115">
+            <!-- Overlay sutil para integrar el diseño plano -->
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none mix-blend-multiply"></div>
+        </div>
+
+        <!-- Sección de Estado y Gestión de Cargas -->
+        <div class="w-full text-center mt-2">
+            <h2 class="text-2xl font-700 tracking-tight mb-1">Bloque: Fuerza e Hipertrofia</h2>
+            <p class="text-sm font-400 opacity-70 mb-6">Gestiona tus cargas, series efectivas y sobrecarga progresiva.</p>
+            
+            <!-- Grid de Opciones Enfocadas en el Registro de Pesos -->
+            <div class="grid grid-cols-2 gap-4 text-left">
+                
+                <!-- Botón principal: Iniciar entrenamiento -->
+                <button class="glass-card rounded-xl p-5 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98] col-span-2 border-l-4 border-l-black dark:border-l-white">
+                    <div class="flex justify-between items-start w-full">
+                        <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10">
+                            <i data-lucide="dumbbell" class="w-6 h-6"></i>
+                        </div>
+                        <span class="text-xs font-700 px-2 py-0.5 bg-black text-white dark:bg-white dark:text-black rounded">HOY</span>
+                    </div>
+                    <div>
+                        <span class="block font-700 text-lg">Entrenar: Empuje / Pecho</span>
+                        <span class="text-xs opacity-60">Siguiente: Press con mancuernas en el suelo</span>
+                    </div>
+                </button>
+
+                <!-- Botón de Historial de cargas -->
+                <button class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98]">
+                    <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10 self-start">
+                        <i data-lucide="history" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="block font-600 text-sm">Historial de Pesos</span>
+                        <span class="text-xs opacity-60">Tus 1RM y marcas</span>
+                    </div>
+                </button>
+
+                <!-- Botón de Rutinas Guardadas -->
+                <button class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98]">
+                    <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10 self-start">
+                        <i data-lucide="clipboard-list" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <span class="block font-600 text-sm">Editar Bloques</span>
+                        <span class="text-xs opacity-60">Rutinas A/B/C</span>
+                    </div>
+                </button>
+
+                <!-- Botón para la sección futura de Flexibilidad/Estiramientos -->
+                <button class="glass-card rounded-xl p-4 flex flex-col justify-between gap-4 hover:scale-[1.02] active:scale-[0.98] col-span-2 opacity-60 hover:opacity-100">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 rounded-lg bg-black/5 dark:bg-white/10">
+                            <i data-lucide="accessibility" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <span class="block font-600 text-sm">Estiramientos y Movilidad</span>
+                            <span class="text-xs opacity-60">Flexibilidad post-entreno (Próximamente)</span>
+                        </div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Botones de Navegación de la App (Sticky Footer) -->
+    <footer class="glass-card sticky bottom-0 z-40 w-full px-4 py-3 mt-8 flex items-center justify-around rounded-t-3xl border-t">
+        <button class="flex flex-col items-center gap-1 py-1 px-3 text-black dark:text-white font-700">
+            <i data-lucide="home" class="w-5 h-5 stroke-[2.5px]"></i>
+            <span class="text-[10px] tracking-wide">Inicio</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="trending-up" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Progreso</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="calendar" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Agenda</span>
+        </button>
+        <button class="flex flex-col items-center gap-1 py-1 px-3 opacity-50 hover:opacity-100 transition-opacity">
+            <i data-lucide="user" class="w-5 h-5"></i>
+            <span class="text-[10px] tracking-wide">Perfil</span>
+        </button>
+    </footer>
+
+    <!-- Script JS para alternar modo y renderizar iconos -->
+    <script>
+        // Inicializar los iconos de Lucide
+        lucide.createIcons();
+
+        const htmlElement = document.documentElement;
+        const themeToggleBtn = document.getElementById('theme-toggle');
+
+        function applyMode(mode) {
+            htmlElement.classList.remove('light-mode', 'dark-mode');
+            htmlElement.classList.add(mode + '-mode');
+            
+            if (mode === 'dark') {
+                htmlElement.classList.add('dark');
+            } else {
+                htmlElement.classList.remove('dark');
+            }
+            localStorage.setItem('theme', mode);
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme) {
+            applyMode(savedTheme);
+        } else if (systemPrefersDark) {
+            applyMode('dark');
+        } else {
+            applyMode('light');
+        }
+
+        themeToggleBtn.addEventListener('click', () => {
+            const currentMode = htmlElement.classList.contains('dark-mode') ? 'dark' : 'light';
+            const newMode = currentMode === 'light' ? 'dark' : 'light';
+            applyMode(newMode);
+        });
+    </script>
+</body>
+</html>

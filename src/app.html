@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="es" class="light-mode">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+		<script>
+			(function() {
+				const theme = localStorage.getItem('theme');
+				const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const isDark = theme === 'dark' || (!theme && systemPrefersDark);
+				if (isDark) {
+					document.documentElement.classList.add('dark', 'dark-mode');
+					document.documentElement.classList.remove('light-mode');
+				} else {
+					document.documentElement.classList.add('light-mode');
+					document.documentElement.classList.remove('dark', 'dark-mode');
+				}
+			})();
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover" class="antialiased">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>
