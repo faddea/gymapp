@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITRAIN - Agenda</title>
+    <!-- CDN de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#080808',
+                        // Colores base para el efecto glass (muy sutiles para fondo oscuro)
+                        glassBg: 'rgba(255, 255, 255, 0.03)', 
+                        glassBgHover: 'rgba(255, 255, 255, 0.07)',
+                        glassBorder: 'rgba(255, 255, 255, 0.08)',
+                        cardBg: '#121212', // Mantener para elementos no glass si es necesario
+                        cardHover: '#1a1a1a',
+                        cardBorder: '#222222'
+                    },
+                    boxShadow: {
+                        // Sombra interior sutil para realzar el borde superior (efecto cristal)
+                        'highlight': 'inset 0 1px 0 0 rgba(255, 255, 255, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Definición de la clase glassmorphism reutilizable */
+        .glass-widget {
+            background-color: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        .glass-widget:hover {
+            background-color: rgba(255, 255, 255, 0.07);
+        }
+    </style>
+</head>
+<body class="bg-black text-white flex justify-center items-center min-h-screen font-sans antialiased">
+
+    <!-- Contenedor principal de la aplicación móvil -->
+    <div class="w-full max-w-md bg-darkBg min-h-screen flex flex-col justify-between relative shadow-2xl overflow-hidden border border-zinc-900 sm:rounded-3xl sm:min-h-[844px] sm:h-[844px]">
+        
+        <!-- Header Top -->
+        <header class="p-5 pb-4 flex items-center justify-between border-b border-zinc-900/60">
+            <div>
+                <p class="text-xs tracking-widest text-zinc-400 font-semibold uppercase">PROGRESO DIARIO</p>
+                <h1 class="text-2xl font-black tracking-tight text-white">ITRAIN</h1>
+            </div>
+            <div class="flex items-center gap-4 text-zinc-300">
+                <button class="hover:text-white transition-colors" title="Notificaciones">
+                    <i data-lucide="bell" class="w-6 h-6"></i>
+                </button>
+                <button class="hover:text-white transition-colors" title="Ajustes">
+                    <i data-lucide="sliders-horizontal" class="w-6 h-6"></i>
+                </button>
+                <button id="theme-toggle" class="flex items-center gap-1.5 text-sm font-medium hover:text-white transition-colors ml-1">
+                    <i data-lucide="moon" class="w-5 h-5"></i>
+                    <span>Modo</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Contenido Principal (Scrollable) -->
+        <main class="flex-1 p-5 overflow-y-auto space-y-7">
+            
+            <!-- Título de sección y botón Añadir -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-3xl font-bold text-white">Agenda</h2>
+                    <p class="text-sm text-zinc-400 mt-1">Planifica y edita tus días de entreno</p>
+                </div>
+                <button id="add-day-btn" class="flex items-center gap-2 bg-white text-black px-4 py-2.5 rounded-xl text-sm font-bold hover:bg-zinc-200 transition-all active:scale-95 shadow-md">
+                    <i data-lucide="plus" class="w-5 h-5 stroke-[3]"></i>
+                    <span>Nuevo día</span>
+                </button>
+            </div>
+
+            <!-- PORTADA ESTILO NOTION -->
+            <div id="cover-container" class="relative w-full h-40 bg-cardBg border border-cardBorder rounded-2xl overflow-hidden group transition-all duration-300 flex items-center justify-center">
+                
+                <img id="cover-preview" src="" alt="Portada de la Agenda" class="w-full h-full object-cover hidden absolute inset-0 select-none pointer-events-none" style="object-position: 50% 50%;" />
+
+                <div id="cover-placeholder" class="flex flex-col items-center justify-center text-zinc-500 gap-2 p-4 text-center">
+                    <i data-lucide="image" class="w-8 h-8 opacity-60"></i>
+                    <p class="text-xs font-medium">Añadir portada de la agenda</p>
+                </div>
+
+                <div id="reposition-overlay" class="absolute inset-0 bg-black/40 hidden items-center justify-center cursor-row-resize select-none">
+                    <span class="bg-black/80 text-white text-xs px-3 py-1.5 rounded-full border border-zinc-700 font-medium pointer-events-none">Arrastra arriba o abajo para ajustar</span>
+                </div>
+
+                <div id="cover-controls" class="absolute bottom-3 right-3 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    
+                    <button id="reposition-btn" type="button" class="hidden bg-black/70 hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-700/60 backdrop-blur-md transition-all flex items-center gap-1.5 shadow-md">
+                        <i data-lucide="move" class="w-4 h-4"></i>
+                        <span>Reposicionar</span>
+                    </button>
+
+                    <label for="cover-input" class="bg-black/70 hover:bg-black text-white text-xs font-semibold px-3 py-1.5 rounded-lg border border-zinc-700/60 backdrop-blur-md cursor-pointer transition-all flex items-center gap-1.5 shadow-md">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span id="cover-button-text">Cambiar portada</span>
+                    </label>
+
+                </div>
+
+                <input type="file" id="cover-input" accept="image/*" class="hidden" />
+            </div>
+
+            <!-- Lista de Días / Rutinas (Actualizada a Glassmorphism, más altas y juntas) -->
+            <!-- space-y-2.5 hace que estén un poco más juntitas -->
+            <div id="workout-list" class="space-y-2.5 pb-20">
+                
+                <!-- Card 1: Push day (py-8 px-6 aumenta grosor vertical) -->
+                <div class="workout-card glass-widget rounded-2xl py-8 px-6 flex items-center justify-between cursor-pointer transition-all duration-200 group">
+                    <div>
+                        <h3 class="font-bold text-2xl text-white group-hover:text-zinc-100">Push day</h3>
+                        <p class="text-sm text-zinc-400">Lunes</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-7 h-7 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+                </div>
+
+                <!-- Card 2: Back day -->
+                <div class="workout-card glass-widget rounded-2xl py-8 px-6 flex items-center justify-between cursor-pointer transition-all duration-200 group">
+                    <div>
+                        <h3 class="font-bold text-2xl text-white group-hover:text-zinc-100">Back day</h3>
+                        <p class="text-sm text-zinc-400">Martes</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-7 h-7 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+                </div>
+
+                <!-- Card 3: Legs day -->
+                <div class="workout-card glass-widget rounded-2xl py-8 px-6 flex items-center justify-between cursor-pointer transition-all duration-200 group">
+                    <div>
+                        <h3 class="font-bold text-2xl text-white group-hover:text-zinc-100">Legs day</h3>
+                        <p class="text-sm text-zinc-400">Viernes</p>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-7 h-7 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Barra de Navegación Inferior (También con ligero toque glass) -->
+        <nav class="glass-widget border-t-0 border-b-0 border-l-0 border-r-0 rounded-t-3xl px-4 py-3.5 flex justify-between items-center text-zinc-500 z-10">
+            
+            <button class="nav-btn flex flex-col items-center gap-1.5 w-1/5 hover:text-zinc-300 transition-colors">
+                <i data-lucide="home" class="w-6 h-6"></i>
+                <span class="text-xs font-medium">Inicio</span>
+            </button>
+
+            <!-- Ítem Activo (Agenda) -->
+            <button class="nav-btn flex flex-col items-center gap-1.5 w-1/5 text-white">
+                <i data-lucide="calendar" class="w-6 h-6"></i>
+                <span class="text-xs font-bold">Agenda</span>
+            </button>
+
+            <button class="nav-btn flex flex-col items-center gap-1.5 w-1/5 hover:text-zinc-300 transition-colors">
+                <i data-lucide="trending-up" class="w-6 h-6"></i>
+                <span class="text-xs font-medium">Progreso</span>
+            </button>
+
+            <button class="nav-btn flex flex-col items-center gap-1.5 w-1/5 hover:text-zinc-300 transition-colors">
+                <i data-lucide="calendar-days" class="w-6 h-6"></i>
+                <span class="text-xs font-medium">Calendario</span>
+            </button>
+
+            <button class="nav-btn flex flex-col items-center gap-1.5 w-1/5 hover:text-zinc-300 transition-colors">
+                <i data-lucide="user" class="w-6 h-6"></i>
+                <span class="text-xs font-medium">Perfil</span>
+            </button>
+
+        </nav>
+
+    </div>
+
+    <!-- Script de Funcionalidades e Interactividad -->
+    <script>
+        // Inicializar los iconos Lucide
+        lucide.createIcons();
+
+        // Elementos de la Portada
+        const coverInput = document.getElementById('cover-input');
+        const coverPreview = document.getElementById('cover-preview');
+        const coverPlaceholder = document.getElementById('cover-placeholder');
+        const repositionBtn = document.getElementById('reposition-btn');
+        const repositionOverlay = document.getElementById('reposition-overlay');
+        
+        let currentPosY = 50; 
+        let isRepositioning = false;
+        let isDragging = false;
+        let startY = 0;
+
+        // Cargar imagen local
+        coverInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    coverPreview.src = e.target.result;
+                    coverPreview.classList.remove('hidden');
+                    coverPlaceholder.classList.add('hidden');
+                    repositionBtn.classList.remove('hidden');
+                    currentPosY = 50;
+                    coverPreview.style.objectPosition = `50% ${currentPosY}%`;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Activar Modo Reposicionamiento
+        repositionBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            isRepositioning = !isRepositioning;
+
+            if (isRepositioning) {
+                repositionOverlay.classList.remove('hidden');
+                repositionOverlay.classList.add('flex');
+                repositionBtn.querySelector('span').textContent = 'Guardar';
+            } else {
+                repositionOverlay.classList.remove('flex');
+                repositionOverlay.classList.add('hidden');
+                repositionBtn.querySelector('span').textContent = 'Reposicionar';
+            }
+        });
+
+        const startDrag = (clientY) => {
+            if (!isRepositioning) return;
+            isDragging = true;
+            startY = clientY;
+        };
+
+        const onDrag = (clientY) => {
+            if (!isDragging || !isRepositioning) return;
+            const deltaY = clientY - startY;
+            startY = clientY;
+            currentPosY = Math.max(0, Math.min(100, currentPosY - (deltaY * 0.4)));
+            coverPreview.style.objectPosition = `50% ${currentPosY}%`;
+        };
+
+        const stopDrag = () => {
+            isDragging = false;
+        };
+
+        repositionOverlay.addEventListener('mousedown', (e) => startDrag(e.clientY));
+        window.addEventListener('mousemove', (e) => onDrag(e.clientY));
+        window.addEventListener('mouseup', stopDrag);
+
+        repositionOverlay.addEventListener('touchstart', (e) => startDrag(e.touches[0].clientY));
+        window.addEventListener('touchmove', (e) => onDrag(e.touches[0].clientY));
+        window.addEventListener('touchend', stopDrag);
+
+        // Agregar nuevo día de entreno dinámicamente con estilo Glass
+        document.getElementById('add-day-btn').addEventListener('click', () => {
+            const workoutName = prompt('Nombre del nuevo día de entreno (ej: Pull day):');
+            if (!workoutName) return;
+
+            const workoutDay = prompt('Día de la semana (ej: Miércoles):') || 'Sin día';
+
+            const workoutList = document.getElementById('workout-list');
+
+            const newCard = document.createElement('div');
+            // Aplicando la clase .glass-widget definida en el style tag
+            newCard.className = 'workout-card glass-widget rounded-2xl py-8 px-6 flex items-center justify-between cursor-pointer transition-all duration-200 group opacity-0 translate-y-2';
+            
+            newCard.innerHTML = `
+                <div>
+                    <h3 class="font-bold text-xl text-white group-hover:text-zinc-100">${workoutName}</h3>
+                    <p class="text-sm text-zinc-400 mt-1">${workoutDay}</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-7 h-7 text-zinc-500 group-hover:text-white group-hover:translate-x-1 transition-all"></i>
+            `;
+
+            workoutList.appendChild(newCard);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                newCard.classList.remove('opacity-0', 'translate-y-2');
+            }, 50);
+        });
+
+        // Cambio activo simple en el Bottom Navigation
+        const navButtons = document.querySelectorAll('.nav-btn');
+        navButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                navButtons.forEach(b => {
+                    b.classList.remove('text-white');
+                    b.classList.add('text-zinc-500');
+                    const span = b.querySelector('span');
+                    if(span) span.classList.replace('font-bold', 'font-medium');
+                });
+                btn.classList.remove('text-zinc-500');
+                btn.classList.add('text-white');
+                const activeSpan = btn.querySelector('span');
+                if(activeSpan) activeSpan.classList.replace('font-medium', 'font-bold');
+            });
+        });
+    </script>
+</body>
+</html>

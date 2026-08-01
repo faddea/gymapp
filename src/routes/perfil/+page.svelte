@@ -6,10 +6,10 @@
 <div class="w-full flex flex-col gap-5">
 	<div class="glass-card p-6 rounded-2xl flex flex-col items-center text-center gap-3">
 		<div class="w-20 h-20 rounded-full bg-black/10 dark:bg-white/10 flex items-center justify-center font-extrabold text-2xl border border-black/10 dark:border-white/15 shadow-inner">
-			HY
+			IT
 		</div>
 		<div>
-			<h3 class="font-extrabold text-lg tracking-tight">Atleta HyperHome</h3>
+			<h3 class="font-extrabold text-lg tracking-tight">Atleta ITRAIN</h3>
 			<span class="text-xs opacity-60 font-medium">Enfocado en Hipertrofia & Sobrecarga Progresiva</span>
 		</div>
 	</div>

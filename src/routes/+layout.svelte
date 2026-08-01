@@ -9,7 +9,7 @@
 
 <svelte:head>
 	<link rel="icon" href={favicon} />
-	<title>HyperHome - Control de Hipertrofia</title>
+	<title>ITRAIN - Control de Hipertrofia</title>
 </svelte:head>
 
 <div class="min-h-screen flex flex-col transition-colors duration-300 antialiased">

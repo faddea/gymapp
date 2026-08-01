@@ -1,4 +1,4 @@
-# App Entrenamiento
+# ITRAIN
 
 ## Tech Stack
 

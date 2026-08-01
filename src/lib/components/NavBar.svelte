@@ -2,7 +2,7 @@
 	import { Bell, Sliders } from 'lucide-svelte';
 	import ThemeToggle from './ThemeToggle.svelte';
 
-	let { title = 'HYPERHOME', subtitle = 'PROGRESO DIARIO' } = $props();
+	let { title = 'ITRAIN', subtitle = 'PROGRESO DIARIO' } = $props();
 </script>
 
 <nav class="glass-card sticky top-0 z-40 w-full px-6 py-3.5 flex items-center justify-between rounded-b-2xl border-b border-black/5 dark:border-white/10 shadow-sm">
