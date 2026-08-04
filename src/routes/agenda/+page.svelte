@@ -1,11 +1,17 @@
 <script lang="ts">
 	import { diasStore } from '$lib/stores/entrenamiento';
-	import { Plus, X, ChevronRight } from 'lucide-svelte';
+	import Modal from '$lib/components/Modal.svelte';
+	import Input from '$lib/components/Input.svelte';
+	import Select from '$lib/components/Select.svelte';
+	import { Plus, ChevronRight } from 'lucide-svelte';
 	import type { Dia } from '$lib/types';
 
 	let showModal = $state(false);
 	let nombreInput = $state('');
 	let diaSemanaInput = $state<number>(1);
+
+	// Referencia al botón para la animación
+	let triggerBtn = $state<HTMLButtonElement | null>(null);
 
 	const diasOpciones = [
 		{ value: 1, label: 'Lunes' },
@@ -23,10 +29,6 @@
 		showModal = true;
 	}
 
-	function closeModal() {
-		showModal = false;
-	}
-
 	function guardarDia() {
 		if (!nombreInput.trim()) return;
 
@@ -38,11 +40,7 @@
 		};
 
 		diasStore.update((dias) => [...dias, nuevo]);
-		closeModal();
-	}
-
-	function eliminarDia(id: string) {
-		diasStore.update((dias) => dias.filter((d) => d.id !== id));
+		showModal = false;
 	}
 
 	const diasNombres: Record<number, string> = {
@@ -52,16 +50,31 @@
 </script>
 
 <div class="w-full flex flex-col gap-5">
-
-	<!-- Header -->
-	<div class="flex items-end justify-between">
-		<div>
-			<h2 class="text-2xl font-extrabold tracking-tight">Agenda</h2>
-			<p class="text-xs opacity-60 font-medium">Planifica y edita tus días de entreno</p>
+	<!-- Portada estilo Notion -->
+	<div class="w-full h-32 glass-card rounded-2xl overflow-hidden relative group shadow-md">
+		<img
+			src="/images/aparte/unnamed8.jpg"
+			alt="Portada Agenda"
+			class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-110"
+		/>
+		<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
+		<div class="absolute bottom-3 left-4 right-4 text-white">
+			<span class="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 backdrop-blur-md px-2 py-0.5 rounded-full border border-white/20">
+				Planificación & Rutinas
+			</span>
+			<h2 class="text-xl font-extrabold tracking-tight text-white mt-1">Agenda</h2>
 		</div>
+	</div>
+
+	<!-- Control e Información -->
+	<div class="flex items-center justify-between -mt-2">
+		<p class="text-xs opacity-70 font-medium max-w-[200px]">
+			Planifica y edita tus días de entreno para estructurar tu rutina.
+		</p>
 		<button
+			bind:this={triggerBtn}
 			onclick={openModal}
-			class="p-2.5 bg-black text-white dark:bg-white dark:text-black rounded-xl font-bold text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+			class="p-2.5 bg-black text-white dark:bg-white dark:text-black rounded-xl font-bold text-xs flex items-center gap-1.5 active:scale-95 transition-all shadow-md cursor-pointer"
 		>
 			<Plus class="w-4 h-4" />
 			<span>Nuevo día</span>
@@ -69,7 +82,7 @@
 	</div>
 
 	<!-- Lista de cards de días -->
-	{#if $diasStore.length === 0}
+	{#if ($diasStore ?? []).length === 0}
 		<div class="glass-card rounded-2xl p-8 flex flex-col items-center text-center gap-3 opacity-60 mt-4">
 			<div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/10 flex items-center justify-center">
 				<Plus class="w-6 h-6" />
@@ -100,76 +113,28 @@
 </div>
 
 <!-- Modal: crear nuevo día -->
-{#if showModal}
-	<div
-		class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-end justify-center"
-		onclick={closeModal}
-		role="button"
-		tabindex="0"
-		onkeydown={(e) => e.key === 'Escape' && closeModal()}
-	>
-		<div
-			class="glass-card bg-white/95 dark:bg-neutral-950/95 text-black dark:text-white w-full max-w-md rounded-t-3xl p-6 flex flex-col gap-5 border-t border-black/10 dark:border-white/10 shadow-2xl"
-			onclick={(e) => e.stopPropagation()}
-			role="document"
-		>
-			<!-- Handle -->
-			<div class="w-10 h-1 bg-black/20 dark:bg-white/20 rounded-full mx-auto -mt-1"></div>
+<Modal bind:open={showModal} title="Nuevo día de entreno" trigger={triggerBtn}>
+	<div class="flex flex-col gap-4">
+		<Input
+			label="Nombre del día"
+			bind:value={nombreInput}
+			placeholder="Ej: Push Day, Espalda, Piernas..."
+			onenter={guardarDia}
+		/>
 
-			<!-- Título del modal -->
-			<div class="flex justify-between items-center">
-				<h3 class="font-extrabold text-lg tracking-tight">Nuevo día de entreno</h3>
-				<button
-					onclick={closeModal}
-					class="p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 active:scale-95 transition-all"
-					aria-label="Cerrar"
-				>
-					<X class="w-5 h-5" />
-				</button>
-			</div>
-
-			<!-- Campos del form -->
-			<div class="flex flex-col gap-4">
-				<!-- Nombre del día -->
-				<div class="flex flex-col gap-1.5">
-					<label for="nombre-dia" class="text-xs font-bold uppercase tracking-wider opacity-60">
-						Nombre del día
-					</label>
-					<input
-						id="nombre-dia"
-						type="text"
-						bind:value={nombreInput}
-						placeholder="Ej: Push Day, Espalda, Piernas..."
-						class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 text-sm font-semibold placeholder:opacity-40 focus:outline-none focus:ring-2 focus:ring-black/30 dark:focus:ring-white/30 transition-all"
-						onkeydown={(e) => e.key === 'Enter' && guardarDia()}
-					/>
-				</div>
-
-				<!-- Día de la semana -->
-				<div class="flex flex-col gap-1.5">
-					<label for="dia-semana" class="text-xs font-bold uppercase tracking-wider opacity-60">
-						Día asignado
-					</label>
-					<select
-						id="dia-semana"
-						bind:value={diaSemanaInput}
-						class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/10 border border-black/10 dark:border-white/15 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-black/30 dark:focus:ring-white/30 transition-all appearance-none cursor-pointer"
-					>
-						{#each diasOpciones as op}
-							<option value={op.value}>{op.label}</option>
-						{/each}
-					</select>
-				</div>
-			</div>
-
-			<!-- Botón guardar -->
-			<button
-				onclick={guardarDia}
-				disabled={!nombreInput.trim()}
-				class="w-full py-3.5 bg-black text-white dark:bg-white dark:text-black font-extrabold rounded-xl text-sm active:scale-98 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed"
-			>
-				Guardar día
-			</button>
-		</div>
+		<Select
+			label="Día asignado"
+			bind:value={diaSemanaInput}
+			options={diasOpciones}
+		/>
 	</div>
-{/if}
+
+	<!-- Botón guardar -->
+	<button
+		onclick={guardarDia}
+		disabled={!nombreInput.trim()}
+		class="w-full py-3.5 bg-black text-white dark:bg-white dark:text-black font-extrabold rounded-xl text-sm active:scale-98 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+	>
+		Guardar día
+	</button>
+</Modal>

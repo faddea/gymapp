@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import type { Dia, MobilityExercise } from '$lib/types';
+import type { Dia, Ejercicio, MobilityExercise } from '$lib/types';
 
 const INITIAL_DIAS: Dia[] = [];
 
@@ -78,3 +78,140 @@ function createThemeStore() {
 }
 
 export const themeStore = createThemeStore();
+
+// --- Funciones Auxiliares CRUD para Ejercicios ---
+
+export function agregarEjercicio(diaId: string, nombre: string, pesoActual: number, pesoObjetivo: number) {
+	diasStore.update((dias) => {
+		return dias.map((d) => {
+			if (d.id !== diaId) return d;
+			const nuevoEjercicio: Ejercicio = {
+				id: crypto.randomUUID(),
+				nombre,
+				series: [
+					{ id: crypto.randomUUID(), numero: 1, pesoActual, pesoObjetivo, completada: false },
+					{ id: crypto.randomUUID(), numero: 2, pesoActual, pesoObjetivo, completada: false }
+				],
+				descansoSeriesSegundos: 180,
+				descansoEjercicioSegundos: 300
+			};
+			return {
+				...d,
+				ejercicios: [...d.ejercicios, nuevoEjercicio]
+			};
+		});
+	});
+}
+
+export function editarEjercicio(diaId: string, ejercicioId: string, nombre: string, pesoActual: number, pesoObjetivo: number) {
+	diasStore.update((dias) => {
+		return dias.map((d) => {
+			if (d.id !== diaId) return d;
+			return {
+				...d,
+				ejercicios: d.ejercicios.map((ej) => {
+					if (ej.id !== ejercicioId) return ej;
+					return {
+						...ej,
+						nombre,
+						series: ej.series.map((s) => ({
+							...s,
+							pesoActual,
+							pesoObjetivo
+						}))
+					};
+				})
+			};
+		});
+	});
+}
+
+export function eliminarEjercicio(diaId: string, ejercicioId: string) {
+	diasStore.update((dias) => {
+		return dias.map((d) => {
+			if (d.id !== diaId) return d;
+			return {
+				...d,
+				ejercicios: d.ejercicios.filter((ej) => ej.id !== ejercicioId)
+			};
+		});
+	});
+}
+
+export function actualizarPesosEjercicio(diaId: string, ejercicioId: string, pesoActual: number, pesoObjetivo: number) {
+	diasStore.update((dias) => {
+		return dias.map((d) => {
+			if (d.id !== diaId) return d;
+			return {
+				...d,
+				ejercicios: d.ejercicios.map((ej) => {
+					if (ej.id !== ejercicioId) return ej;
+					return {
+						...ej,
+						series: ej.series.map((s) => ({
+							...s,
+							pesoActual,
+							pesoObjetivo
+						}))
+					};
+				})
+			};
+		});
+	});
+}
+
+export function moverEjercicioDeDia(ejercicioId: string, origenDiaId: string, destinoDiaId: string) {
+	diasStore.update((dias) => {
+		let ejercicioAMover: Ejercicio | null = null;
+
+		// Remover del origen
+		const diasLimpios = dias.map((d) => {
+			if (d.id === origenDiaId) {
+				ejercicioAMover = d.ejercicios.find((e) => e.id === ejercicioId) || null;
+				return {
+					...d,
+					ejercicios: d.ejercicios.filter((e) => e.id !== ejercicioId)
+				};
+			}
+			return d;
+		});
+
+		if (!ejercicioAMover) return dias;
+
+		// Agregar al destino
+		return diasLimpios.map((d) => {
+			if (d.id === destinoDiaId) {
+				return {
+					...d,
+					ejercicios: [...d.ejercicios, ejercicioAMover!]
+				};
+			}
+			return d;
+		});
+	});
+}
+
+export function reordenarEjercicio(diaId: string, ejercicioId: string, direccion: 'subir' | 'bajar') {
+	diasStore.update((dias) => {
+		return dias.map((d) => {
+			if (d.id !== diaId) return d;
+			const index = d.ejercicios.findIndex((e) => e.id === ejercicioId);
+			if (index === -1) return d;
+
+			const nuevosEjercicios = [...d.ejercicios];
+			if (direccion === 'subir' && index > 0) {
+				const temp = nuevosEjercicios[index];
+				nuevosEjercicios[index] = nuevosEjercicios[index - 1];
+				nuevosEjercicios[index - 1] = temp;
+			} else if (direccion === 'bajar' && index < nuevosEjercicios.length - 1) {
+				const temp = nuevosEjercicios[index];
+				nuevosEjercicios[index] = nuevosEjercicios[index + 1];
+				nuevosEjercicios[index + 1] = temp;
+			}
+			return {
+				...d,
+				ejercicios: nuevosEjercicios
+			};
+		});
+	});
+}

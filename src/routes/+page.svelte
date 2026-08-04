@@ -4,6 +4,7 @@
 	import MobilityModal from '$lib/components/MobilityModal.svelte';
 
 	let showMobilityModal = $state(false);
+	let mobilityBtn = $state<HTMLButtonElement | null>(null);
 
 	// Formatear el día de la semana actual
 	const diasSemanaNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -119,6 +120,7 @@
 
 		<!-- Botón para la sección de Flexibilidad/Estiramientos -->
 		<button
+			bind:this={mobilityBtn}
 			onclick={() => (showMobilityModal = true)}
 			class="glass-card rounded-xl p-4 flex flex-col justify-between gap-3 hover:scale-[1.01] active:scale-[0.98] col-span-2 transition-all text-left cursor-pointer group"
 		>
@@ -136,4 +138,4 @@
 </div>
 
 <!-- Modal de Movilidad -->
-<MobilityModal bind:open={showMobilityModal} />
+<MobilityModal bind:open={showMobilityModal} trigger={mobilityBtn} />

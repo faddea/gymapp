@@ -11,12 +11,6 @@
 		<h1 class="text-xl font-extrabold tracking-tight uppercase">{title}</h1>
 	</div>
 	<div class="flex items-center gap-1.5">
-		<button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-transform" aria-label="Notificaciones">
-			<Bell class="w-4 h-4 opacity-80" />
-		</button>
-		<button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 active:scale-90 transition-transform" aria-label="Ajustes">
-			<Sliders class="w-4 h-4 opacity-80" />
-		</button>
 		<ThemeToggle />
 	</div>
 </nav>
