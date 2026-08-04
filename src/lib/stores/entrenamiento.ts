@@ -79,6 +79,21 @@ function createThemeStore() {
 
 export const themeStore = createThemeStore();
 
+function createPesoCorporalStore() {
+	const initial = isBrowser ? parseFloat(localStorage.getItem('hyper_peso_corporal') || '') || 78.4 : 78.4;
+	const { subscribe, set } = writable<number>(initial);
+
+	return {
+		subscribe,
+		set: (value: number) => {
+			if (isBrowser) localStorage.setItem('hyper_peso_corporal', String(value));
+			set(value);
+		}
+	};
+}
+
+export const pesoCorporalStore = createPesoCorporalStore();
+
 // --- Funciones Auxiliares CRUD para Ejercicios ---
 
 export function agregarEjercicio(diaId: string, nombre: string, pesoActual: number, pesoObjetivo: number) {

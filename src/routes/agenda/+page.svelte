@@ -53,7 +53,7 @@
 	<!-- Portada estilo Notion -->
 	<div class="w-full h-32 glass-card rounded-2xl overflow-hidden relative group shadow-md">
 		<img
-			src="/images/aparte/unnamed8.jpg"
+			src="/images/unnamed20.jpg"
 			alt="Portada Agenda"
 			class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-110"
 		/>
