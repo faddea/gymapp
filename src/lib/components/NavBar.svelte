@@ -8,7 +8,7 @@
 	import Select from './Select.svelte';
 	import { diasStore } from '$lib/stores/entrenamiento';
 
-	let { title = 'ITRAIN', subtitle = 'PROGRESO DIARIO' } = $props();
+	let { title = 'ITRAING', subtitle = 'PROGRESO DIARIO' } = $props();
 
 	const diaId = $derived($page.params.id);
 	const dia = $derived($diasStore.find((d) => d.id === diaId));

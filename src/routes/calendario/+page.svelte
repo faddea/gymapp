@@ -13,7 +13,7 @@
 		<img
 			src="/images/unnamed16.jpg"
 			alt="Portada Calendario"
-			class="object-cover object-[0%_22%] w-full h-full grayscale dark:grayscale-0 contrast-110"
+			class="object-cover object-[0%_24%] w-full h-full grayscale dark:grayscale-0 contrast-110"
 		/>
 		<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none"></div>
 		<div class="absolute bottom-3 left-4 right-4 text-white">

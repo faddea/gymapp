@@ -8,6 +8,41 @@
 - **Mobile:** Capacitor (Android)
 - **Persistence:** localStorage
 
+## Build Android (Capacitor)
+
+La app empaquetada para Android usa Capacitor. Todo el tooling de build está **dentro del proyecto** (self-contained), sin depender de instalaciones en el sistema:
+
+| Carpeta | Contenido |
+|---------|-----------|
+| `.android-sdk/` | Android SDK (platform-tools, platforms;android-36, build-tools) |
+| `.jdk/jdk-21.0.12+8/` | JDK 21 (Capacitor 8 requiere Java 21) |
+| `.gradle/` | Caché de Gradle (wrapper + dependencias) |
+
+> Estas carpetas están en `.gitignore` y **no se deben commitear**.
+
+**Configuración:**
+- `capacitor.config.ts` — appId `com.itraing.app`, appName `itraing`, webDir `build`, splash oscuro (`backgroundColor: #0a0a0a`).
+- `android/local.properties` — `sdk.dir=../.android-sdk`.
+- `android/gradle.properties` — `org.gradle.java.home` y `org.gradle.user.home` apuntando al `.jdk`/`.gradle` del proyecto.
+- `src/routes/+layout.ts` — `export const ssr = false` (CSR-only: la app usa `localStorage`/`window`).
+
+**Flujo de build:**
+```sh
+npm run build          # genera la web estática en build/
+npx cap sync android   # copia la web + plugins al proyecto Android
+npm run apk            # compila el APK debug (usa build-apk.sh)
+```
+
+> Usar siempre `npm run apk` (o `./build-apk.sh`): fuerza `GRADLE_USER_HOME` a la caché del proyecto. Ejecutar `gradlew` directo sin `GRADLE_USER_HOME` recrea `~/.gradle` en el home.
+
+**APK resultante:** `android/app/build/outputs/apk/debug/app-debug.apk`
+
+**Icono y splash:** se generan desde `static/icons/splash.png` (1024×1024) con `@capacitor/assets` (fuentes en `assets/`). El splash es oscuro (`#0a0a0a`) tanto en Android 12+ (`windowSplashScreenBackground`) como en versiones anteriores.
+
+### Nota sobre `~/.android`
+
+El directorio `~/.android/` del home (contiene `debug.keystore`, `analytics.settings`, `cache`) es **preexistente y ajeno a este proyecto** — no lo genera el build. Se deja como está: lo usa Gradle para firmar el APK de debug y también otros proyectos del equipo. **No borrar.**
+
 ## Pantallas (Bottom Nav)
 
 | Icono | Ruta | Nombre | Descripción |

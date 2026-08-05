@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { rutinaDeHoy } from '$lib/stores/entrenamiento';
+	import { getDiaImagen } from '$lib/utils/imagenes';
 	import { Dumbbell, History, ClipboardList, Accessibility, Sparkles, ChevronRight } from 'lucide-svelte';
 	import MobilityModal from '$lib/components/MobilityModal.svelte';
 
@@ -14,16 +15,18 @@
 <!-- Imagen Cuadrada de Entrenamiento Requerida con Glass Container -->
 <div class="w-full aspect-square glass-card rounded-2xl overflow-hidden relative group shadow-lg">
 	<img
-		src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNVPVKU9N5pXts8w4REHzK1-bdcR8nM9LbdFLKIAinQ&s=10"
-		alt="Entrenamiento de Hipertrofia"
+		src={$rutinaDeHoy ? getDiaImagen($rutinaDeHoy.nombre, $rutinaDeHoy.id) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNVPVKU9N5pXts8w4REHzK1-bdcR8nM9LbdFLKIAinQ&s=10'}
+		alt={$rutinaDeHoy ? `Entrenamiento: ${$rutinaDeHoy.nombre}` : 'Entrenamiento de Hipertrofia'}
 		class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-115 transform group-hover:scale-105 transition-transform duration-500"
 	/>
 	<div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none"></div>
 	<div class="absolute bottom-4 left-4 right-4 text-white flex flex-col gap-1">
 		<span class="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full w-fit border border-white/20">
-			Fase Actual
+			{$rutinaDeHoy ? 'HOY · Entreno' : 'Descanso'}
 		</span>
-		<h3 class="text-lg font-bold tracking-tight text-white drop-shadow-sm">Sobrecarga Progresiva W4</h3>
+		<h3 class="text-lg font-bold tracking-tight text-white drop-shadow-sm">
+			{$rutinaDeHoy ? $rutinaDeHoy.nombre : 'Día de descanso'}
+		</h3>
 	</div>
 </div>
 
