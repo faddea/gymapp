@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import type { Dia, Ejercicio, MobilityExercise } from '$lib/types';
+import type { Dia, Ejercicio, MobilityExercise, ModoEntrenamiento } from '$lib/types';
 
 const INITIAL_DIAS: Dia[] = [];
 
@@ -94,9 +94,61 @@ function createPesoCorporalStore() {
 
 export const pesoCorporalStore = createPesoCorporalStore();
 
+function createModoEntrenamientoStore() {
+	const initial: ModoEntrenamiento = isBrowser
+		? localStorage.getItem('modo_entrenamiento') === 'home'
+			? 'home'
+			: 'gym'
+		: 'gym';
+	const { subscribe, set } = writable<ModoEntrenamiento>(initial);
+
+	return {
+		subscribe,
+		set: (value: ModoEntrenamiento) => {
+			if (isBrowser) localStorage.setItem('modo_entrenamiento', value);
+			set(value);
+		}
+	};
+}
+
+export const modoEntrenamientoStore = createModoEntrenamientoStore();
+
+export function getFechaClave(d: Date = new Date()): string {
+	return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function createEntrenamientoHechoStore() {
+	const initial: Record<string, boolean> = isBrowser
+		? JSON.parse(localStorage.getItem('hyper_entrenamiento_hecho') || '{}')
+		: {};
+	const { subscribe, update } = writable<Record<string, boolean>>(initial);
+
+	return {
+		subscribe,
+		completarHoy: () => {
+			update((record) => {
+				const next = { ...record, [getFechaClave()]: true };
+				if (isBrowser) localStorage.setItem('hyper_entrenamiento_hecho', JSON.stringify(next));
+				return next;
+			});
+		}
+	};
+}
+
+export const entrenamientoHechoStore = createEntrenamientoHechoStore();
+
+export const entrenamientoHoyHecho = derived(entrenamientoHechoStore, ($hecho) => !!$hecho[getFechaClave()]);
+
 // --- Funciones Auxiliares CRUD para Ejercicios ---
 
-export function agregarEjercicio(diaId: string, nombre: string, pesoActual: number, pesoObjetivo: number) {
+export function agregarEjercicio(
+	diaId: string,
+	nombre: string,
+	pesoActual: number,
+	pesoObjetivo: number,
+	pesoActualTexto?: string,
+	pesoObjetivoTexto?: string
+) {
 	diasStore.update((dias) => {
 		return dias.map((d) => {
 			if (d.id !== diaId) return d;
@@ -104,8 +156,8 @@ export function agregarEjercicio(diaId: string, nombre: string, pesoActual: numb
 				id: crypto.randomUUID(),
 				nombre,
 				series: [
-					{ id: crypto.randomUUID(), numero: 1, pesoActual, pesoObjetivo, completada: false },
-					{ id: crypto.randomUUID(), numero: 2, pesoActual, pesoObjetivo, completada: false }
+					{ id: crypto.randomUUID(), numero: 1, pesoActual, pesoObjetivo, pesoActualTexto, pesoObjetivoTexto, completada: false },
+					{ id: crypto.randomUUID(), numero: 2, pesoActual, pesoObjetivo, pesoActualTexto, pesoObjetivoTexto, completada: false }
 				],
 				descansoSeriesSegundos: 180,
 				descansoEjercicioSegundos: 300
@@ -118,7 +170,15 @@ export function agregarEjercicio(diaId: string, nombre: string, pesoActual: numb
 	});
 }
 
-export function editarEjercicio(diaId: string, ejercicioId: string, nombre: string, pesoActual: number, pesoObjetivo: number) {
+export function editarEjercicio(
+	diaId: string,
+	ejercicioId: string,
+	nombre: string,
+	pesoActual: number,
+	pesoObjetivo: number,
+	pesoActualTexto?: string,
+	pesoObjetivoTexto?: string
+) {
 	diasStore.update((dias) => {
 		return dias.map((d) => {
 			if (d.id !== diaId) return d;
@@ -132,7 +192,9 @@ export function editarEjercicio(diaId: string, ejercicioId: string, nombre: stri
 						series: ej.series.map((s) => ({
 							...s,
 							pesoActual,
-							pesoObjetivo
+							pesoObjetivo,
+							pesoActualTexto,
+							pesoObjetivoTexto
 						}))
 					};
 				})
@@ -153,7 +215,14 @@ export function eliminarEjercicio(diaId: string, ejercicioId: string) {
 	});
 }
 
-export function actualizarPesosEjercicio(diaId: string, ejercicioId: string, pesoActual: number, pesoObjetivo: number) {
+export function actualizarPesosEjercicio(
+	diaId: string,
+	ejercicioId: string,
+	pesoActual: number,
+	pesoObjetivo: number,
+	pesoActualTexto?: string,
+	pesoObjetivoTexto?: string
+) {
 	diasStore.update((dias) => {
 		return dias.map((d) => {
 			if (d.id !== diaId) return d;
@@ -166,7 +235,9 @@ export function actualizarPesosEjercicio(diaId: string, ejercicioId: string, pes
 						series: ej.series.map((s) => ({
 							...s,
 							pesoActual,
-							pesoObjetivo
+							pesoObjetivo,
+							pesoActualTexto,
+							pesoObjetivoTexto
 						}))
 					};
 				})

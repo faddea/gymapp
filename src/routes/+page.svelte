@@ -1,31 +1,52 @@
 <script lang="ts">
-	import { rutinaDeHoy } from '$lib/stores/entrenamiento';
+	import { rutinaDeHoy, entrenamientoHoyHecho, entrenamientoHechoStore } from '$lib/stores/entrenamiento';
 	import { getDiaImagen } from '$lib/utils/imagenes';
-	import { Dumbbell, History, ClipboardList, Accessibility, Sparkles, ChevronRight } from 'lucide-svelte';
+	import { Dumbbell, History, ClipboardList, Accessibility, Sparkles, ChevronRight, Check, X } from 'lucide-svelte';
 	import MobilityModal from '$lib/components/MobilityModal.svelte';
+	import Modal from '$lib/components/Modal.svelte';
 
 	let showMobilityModal = $state(false);
 	let mobilityBtn = $state<HTMLButtonElement | null>(null);
 
+	let showDoneModal = $state(false);
+	let trainBtn = $state<HTMLButtonElement | null>(null);
+
+	const URL_DESCANSO =
+		'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNVPVKU9N5pXts8w4REHzK1-bdcR8nM9LbdFLKIAinQ&s=10';
+
+	const entrenadoHoy = $derived($entrenamientoHoyHecho);
+
+	const heroImg = $derived(
+		entrenadoHoy || !$rutinaDeHoy
+			? URL_DESCANSO
+			: getDiaImagen($rutinaDeHoy.nombre, $rutinaDeHoy.id)
+	);
+	const esCardio = $derived(heroImg.includes('/cardio/'));
+
 	// Formatear el día de la semana actual
 	const diasSemanaNombres = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 	const diaActualNombre = diasSemanaNombres[new Date().getDay()];
+
+	function marcarCompletado() {
+		entrenamientoHechoStore.completarHoy();
+		showDoneModal = false;
+	}
 </script>
 
 <!-- Imagen Cuadrada de Entrenamiento Requerida con Glass Container -->
 <div class="w-full aspect-square glass-card rounded-2xl overflow-hidden relative group shadow-lg">
 	<img
-		src={$rutinaDeHoy ? getDiaImagen($rutinaDeHoy.nombre, $rutinaDeHoy.id) : 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTYNVPVKU9N5pXts8w4REHzK1-bdcR8nM9LbdFLKIAinQ&s=10'}
-		alt={$rutinaDeHoy ? `Entrenamiento: ${$rutinaDeHoy.nombre}` : 'Entrenamiento de Hipertrofia'}
-		class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-115 transform group-hover:scale-105 transition-transform duration-500"
+		src={heroImg}
+		alt={entrenadoHoy || !$rutinaDeHoy ? 'Descanso' : `Entrenamiento: ${$rutinaDeHoy.nombre}`}
+		class="object-cover w-full h-full grayscale dark:grayscale-0 contrast-115 transform group-hover:scale-105 transition-transform duration-500 {esCardio ? 'object-[0%_22%]' : 'object-center'}"
 	/>
 	<div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent pointer-events-none"></div>
 	<div class="absolute bottom-4 left-4 right-4 text-white flex flex-col gap-1">
 		<span class="text-[10px] font-extrabold uppercase tracking-widest bg-white/20 backdrop-blur-md px-2.5 py-1 rounded-full w-fit border border-white/20">
-			{$rutinaDeHoy ? 'HOY · Entreno' : 'Descanso'}
+			{entrenadoHoy ? 'HOY · Hecho' : $rutinaDeHoy ? 'HOY · Entreno' : 'Descanso'}
 		</span>
 		<h3 class="text-lg font-bold tracking-tight text-white drop-shadow-sm">
-			{$rutinaDeHoy ? $rutinaDeHoy.nombre : 'Día de descanso'}
+			{entrenadoHoy ? 'Ya entrené hoy' : $rutinaDeHoy ? $rutinaDeHoy.nombre : 'Día de descanso'}
 		</h3>
 	</div>
 </div>
@@ -42,9 +63,10 @@
 		
 		<!-- Botón principal: Iniciar entrenamiento del día -->
 		{#if $rutinaDeHoy}
-			<a
-				href={`/workout/${$rutinaDeHoy.id}`}
-				class="glass-card rounded-2xl p-5 flex flex-col justify-between gap-4 hover:scale-[1.01] active:scale-[0.98] col-span-2 border-l-4 border-l-black dark:border-l-white group transition-all"
+			<button
+				bind:this={trainBtn}
+				onclick={() => (showDoneModal = true)}
+				class="glass-card rounded-2xl p-5 flex flex-col justify-between gap-4 hover:scale-[1.01] active:scale-[0.98] col-span-2 border-l-4 border-l-black dark:border-l-white group transition-all text-left cursor-pointer"
 			>
 				<div class="flex justify-between items-start w-full">
 					<div class="p-2.5 rounded-xl bg-black/5 dark:bg-white/10 group-hover:bg-black/10 dark:group-hover:bg-white/20 transition-colors">
@@ -56,16 +78,20 @@
 				</div>
 				<div class="flex justify-between items-end">
 					<div>
-						<span class="block font-extrabold text-lg tracking-tight">Entrenar: {$rutinaDeHoy.nombre}</span>
+						<span class="block font-extrabold text-lg tracking-tight">
+							{entrenadoHoy ? 'Ya entrenaste: ' : 'Entrenar: '}{$rutinaDeHoy.nombre}
+						</span>
 						<span class="text-xs opacity-60 font-medium">
-							Siguiente: {$rutinaDeHoy.ejercicios[0]?.nombre || 'Ver ejercicios'}
+							{entrenadoHoy
+								? 'Marca tu entrenamiento como completado'
+								: `Siguiente: ${$rutinaDeHoy.ejercicios[0]?.nombre || 'Ver ejercicios'}`}
 						</span>
 					</div>
 					<div class="p-1 rounded-full bg-black/5 dark:bg-white/10 group-hover:translate-x-1 transition-transform">
 						<ChevronRight class="w-5 h-5" />
 					</div>
 				</div>
-			</a>
+			</button>
 		{:else}
 			<div
 				class="glass-card rounded-2xl p-5 flex flex-col justify-between gap-4 col-span-2 border-l-4 border-l-amber-500/80 transition-all"
@@ -142,3 +168,40 @@
 
 <!-- Modal de Movilidad -->
 <MobilityModal bind:open={showMobilityModal} trigger={mobilityBtn} />
+
+<!-- Modal: marcar entrenamiento como completado -->
+<Modal
+	bind:open={showDoneModal}
+	title="¿Terminaste el entrenamiento?"
+	eyebrow="Rutina de hoy"
+	subtitle={$rutinaDeHoy?.nombre}
+	trigger={trainBtn}
+	closeLabel="Cerrar modal"
+>
+	{#snippet icon()}
+		<Dumbbell class="w-5 h-5" />
+	{/snippet}
+
+	<p class="text-xs opacity-75 leading-relaxed">
+		Al marcar tu entrenamiento como completado, tu inicio cambiará a estado de descanso para hoy.
+	</p>
+
+	<div class="flex flex-col gap-2">
+		<button
+			onclick={marcarCompletado}
+			disabled={entrenadoHoy}
+			class="w-full py-3.5 bg-black text-white dark:bg-white dark:text-black font-extrabold rounded-xl text-sm flex items-center justify-center gap-2 active:scale-98 transition-all shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+		>
+			<Check class="w-4 h-4" />
+			{entrenadoHoy ? 'Ya lo marcaste hoy' : 'Sí, ya lo terminé'}
+		</button>
+
+		<button
+			onclick={() => (showDoneModal = false)}
+			class="w-full py-3 rounded-xl text-xs font-bold bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/15 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+		>
+			<X class="w-4 h-4" />
+			Todavía no
+		</button>
+	</div>
+</Modal>

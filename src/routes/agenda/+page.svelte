@@ -47,6 +47,13 @@
 		0: 'Domingo', 1: 'Lunes', 2: 'Martes',
 		3: 'Miércoles', 4: 'Jueves', 5: 'Viernes', 6: 'Sábado'
 	};
+
+	const diasOrdenados = $derived(
+		[...$diasStore].sort((a, b) => {
+			const orden = (d: Dia) => (d.diaSemana === undefined ? 7 : (d.diaSemana + 6) % 7);
+			return orden(a) - orden(b);
+		})
+	);
 </script>
 
 <div class="w-full flex flex-col gap-5">
@@ -94,7 +101,7 @@
 		</div>
 	{:else}
 		<div class="flex flex-col gap-3 w-full">
-			{#each $diasStore as dia}
+			{#each diasOrdenados as dia}
 				<a
 					href={`/agenda/${dia.id}`}
 					class="glass-card rounded-2xl p-4 flex items-center justify-between border-l-4 border-l-black dark:border-l-white hover:scale-[1.01] active:scale-[0.99] transition-all group"

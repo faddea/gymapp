@@ -1,8 +1,12 @@
+export type ModoEntrenamiento = 'gym' | 'home';
+
 export interface Serie {
 	id: string;
 	numero: number;
 	pesoActual: number;
 	pesoObjetivo: number;
+	pesoActualTexto?: string;
+	pesoObjetivoTexto?: string;
 	repsRealizadas?: number;
 	completada: boolean;
 }

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { diasStore, agregarEjercicio, editarEjercicio, eliminarEjercicio } from '$lib/stores/entrenamiento';
+	import { Capacitor } from '@capacitor/core';
+	import { diasStore, agregarEjercicio, editarEjercicio, eliminarEjercicio, modoEntrenamientoStore } from '$lib/stores/entrenamiento';
 	import Modal from '$lib/components/Modal.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import { ArrowLeft, Plus, Pencil, Trash2, Dumbbell, MoreVertical } from 'lucide-svelte';
@@ -10,6 +11,8 @@
 	const diaId = $derived($page.params.id);
 	const dia = $derived($diasStore.find((d) => d.id === diaId));
 	const diaImagen = $derived(dia ? getDiaImagen(dia.nombre, dia.id) : '');
+	const esHome = $derived($modoEntrenamientoStore === 'home');
+	const esAndroid = $derived(Capacitor.getPlatform() === 'android');
 
 	let showModal = $state(false);
 	let isEditing = $state(false);
@@ -17,6 +20,8 @@
 	let nombreInput = $state('');
 	let pesoActualInput = $state<number>(0);
 	let pesoObjetivoInput = $state<number>(0);
+	let pesoActualTextoInput = $state('');
+	let pesoObjetivoTextoInput = $state('');
 
 	let createBtn = $state<HTMLButtonElement | null>(null);
 	let modalTrigger = $state<HTMLElement | null>(null);
@@ -52,6 +57,8 @@
 		nombreInput = '';
 		pesoActualInput = 0;
 		pesoObjetivoInput = 0;
+		pesoActualTextoInput = '';
+		pesoObjetivoTextoInput = '';
 		modalTrigger = createBtn;
 		showModal = true;
 	}
@@ -62,6 +69,8 @@
 		nombreInput = ej.nombre;
 		pesoActualInput = ej.series[0]?.pesoActual || 0;
 		pesoObjetivoInput = ej.series[0]?.pesoObjetivo || 0;
+		pesoActualTextoInput = ej.series[0]?.pesoActualTexto || '';
+		pesoObjetivoTextoInput = ej.series[0]?.pesoObjetivoTexto || '';
 		modalTrigger = trigger ?? createBtn;
 		showModal = true;
 	}
@@ -69,10 +78,13 @@
 	function handleSubmit() {
 		if (!nombreInput.trim() || !diaId) return;
 
+		const textoActual = esHome ? pesoActualTextoInput.trim() : undefined;
+		const textoObjetivo = esHome ? pesoObjetivoTextoInput.trim() : undefined;
+
 		if (isEditing && currentEjercicioId) {
-			editarEjercicio(diaId, currentEjercicioId, nombreInput, pesoActualInput, pesoObjetivoInput);
+			editarEjercicio(diaId, currentEjercicioId, nombreInput, pesoActualInput, pesoObjetivoInput, textoActual, textoObjetivo);
 		} else {
-			agregarEjercicio(diaId, nombreInput, pesoActualInput, pesoObjetivoInput);
+			agregarEjercicio(diaId, nombreInput, pesoActualInput, pesoObjetivoInput, textoActual, textoObjetivo);
 		}
 		showModal = false;
 	}
@@ -114,13 +126,15 @@
 		<!-- Header con volver y título -->
 		<div class="flex items-center justify-between border-b pb-3 border-black/10 dark:border-white/10">
 			<div class="flex items-center gap-3">
-				<a
-					href="/agenda"
-					class="p-2 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 active:scale-95 transition-all"
-					aria-label="Volver a Agenda"
-				>
-					<ArrowLeft class="w-5 h-5" />
-				</a>
+				{#if !esAndroid}
+					<a
+						href="/agenda"
+						class="p-2 rounded-xl bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-white/20 active:scale-95 transition-all"
+						aria-label="Volver a Agenda"
+					>
+						<ArrowLeft class="w-5 h-5" />
+					</a>
+				{/if}
 				<div>
 					<h2 class="text-2xl font-extrabold tracking-tight">{dia.nombre}</h2>
 					{#if dia.diaSemana !== undefined}
@@ -158,10 +172,6 @@
 							<span class="font-extrabold text-base tracking-tight">{ej.nombre}</span>
 							<div class="flex items-center gap-2 text-xs opacity-75">
 								<span class="font-bold px-2 py-0.5 bg-black/10 dark:bg-white/10 rounded-md">2 Series</span>
-								<span>•</span>
-								<span>Peso actual: <strong>{ej.series[0]?.pesoActual || 0} kg</strong></span>
-								<span>•</span>
-								<span>Objetivo: <strong>{ej.series[0]?.pesoObjetivo || 0} kg</strong></span>
 							</div>
 						</div>
 
@@ -235,23 +245,39 @@
 			onenter={handleSubmit}
 		/>
 
-		<div class="grid grid-cols-2 gap-3">
-			<Input
-				label="Peso actual (kg)"
-				type="number"
-				bind:value={pesoActualInput}
-				step={0.5}
-				stepper
-			/>
+		{#if esHome}
+			<div class="grid grid-cols-2 gap-3">
+				<Input
+					label="Carga actual"
+					bind:value={pesoActualTextoInput}
+					placeholder="Ej: balde + pesa + disco"
+				/>
 
-			<Input
-				label="Peso objetivo (kg)"
-				type="number"
-				bind:value={pesoObjetivoInput}
-				step={0.5}
-				stepper
-			/>
-		</div>
+				<Input
+					label="Carga objetivo"
+					bind:value={pesoObjetivoTextoInput}
+					placeholder="Ej: balde + 2 discos"
+				/>
+			</div>
+		{:else}
+			<div class="grid grid-cols-2 gap-3">
+				<Input
+					label="Peso actual (kg)"
+					type="number"
+					bind:value={pesoActualInput}
+					step={0.5}
+					stepper
+				/>
+
+				<Input
+					label="Peso objetivo (kg)"
+					type="number"
+					bind:value={pesoObjetivoInput}
+					step={0.5}
+					stepper
+				/>
+			</div>
+		{/if}
 	</div>
 
 	<button

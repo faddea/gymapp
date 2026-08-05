@@ -1,24 +1,30 @@
 <script lang="ts">
 	import { page } from '$app/stores';
-	import { diasStore, actualizarPesosEjercicio } from '$lib/stores/entrenamiento';
+	import { diasStore, actualizarPesosEjercicio, modoEntrenamientoStore } from '$lib/stores/entrenamiento';
 	import Modal from '$lib/components/Modal.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import { ArrowLeft, Save, Dumbbell, TrendingUp } from 'lucide-svelte';
+	import { formatearCarga } from '$lib/utils/carga';
 	import type { Ejercicio } from '$lib/types';
 
 	const diaId = $derived($page.params.id);
 	const dia = $derived($diasStore.find((d) => d.id === diaId));
+	const esHome = $derived($modoEntrenamientoStore === 'home');
 
 	let showModal = $state(false);
 	let selectedEjercicio = $state<Ejercicio | null>(null);
 	let pesoRealizadoInput = $state<number>(0);
 	let pesoObjetivoInput = $state<number>(0);
+	let pesoRealizadoTextoInput = $state('');
+	let pesoObjetivoTextoInput = $state('');
 	let modalTrigger = $state<HTMLElement | null>(null);
 
 	function openModal(ej: Ejercicio, trigger?: HTMLElement) {
 		selectedEjercicio = ej;
 		pesoRealizadoInput = ej.series[0]?.pesoActual || 0;
 		pesoObjetivoInput = ej.series[0]?.pesoObjetivo || 0;
+		pesoRealizadoTextoInput = ej.series[0]?.pesoActualTexto || '';
+		pesoObjetivoTextoInput = ej.series[0]?.pesoObjetivoTexto || '';
 		modalTrigger = trigger ?? null;
 		showModal = true;
 	}
@@ -30,7 +36,9 @@
 
 	function handleSave() {
 		if (!diaId || !selectedEjercicio) return;
-		actualizarPesosEjercicio(diaId, selectedEjercicio.id, pesoRealizadoInput, pesoObjetivoInput);
+		const textoRealizado = esHome ? pesoRealizadoTextoInput.trim() : undefined;
+		const textoObjetivo = esHome ? pesoObjetivoTextoInput.trim() : undefined;
+		actualizarPesosEjercicio(diaId, selectedEjercicio.id, pesoRealizadoInput, pesoObjetivoInput, textoRealizado, textoObjetivo);
 		closeModal();
 	}
 </script>
@@ -89,14 +97,14 @@
 
 						<div class="grid grid-cols-2 gap-2 text-xs pt-1 border-t border-black/5 dark:border-white/5">
 							<div class="p-2 rounded-xl bg-black/5 dark:bg-white/5 flex flex-col">
-								<span class="text-[10px] opacity-60 font-bold uppercase">Peso Realizado</span>
-								<span class="font-extrabold text-sm">{ej.series[0]?.pesoActual || 0} kg</span>
+								<span class="text-[10px] opacity-60 font-bold uppercase">{esHome ? 'Carga Realizada' : 'Peso Realizado'}</span>
+								<span class="font-extrabold text-sm">{formatearCarga(ej.series[0], 'actual', $modoEntrenamientoStore)}</span>
 							</div>
 
 							<div class="p-2 rounded-xl bg-black/5 dark:bg-white/5 flex flex-col">
 								<span class="text-[10px] opacity-60 font-bold uppercase">Objetivo Próxima Sem.</span>
 								<span class="font-extrabold text-sm text-emerald-600 dark:text-emerald-400">
-									{ej.series[0]?.pesoObjetivo || 0} kg
+									{formatearCarga(ej.series[0], 'objetivo', $modoEntrenamientoStore)}
 								</span>
 							</div>
 						</div>
@@ -110,21 +118,35 @@
 <!-- Modal para actualizar peso del ejercicio -->
 <Modal bind:open={showModal} title={selectedEjercicio?.nombre ?? ''} eyebrow="Registrar Pesos" trigger={modalTrigger}>
 	<div class="flex flex-col gap-4">
-		<Input
-			label="Peso realizado hoy (kg)"
-			type="number"
-			bind:value={pesoRealizadoInput}
-			step={0.5}
-			stepper
-		/>
+		{#if esHome}
+			<Input
+				label="Carga realizada hoy"
+				bind:value={pesoRealizadoTextoInput}
+				placeholder="Ej: balde + pesa + disco"
+			/>
 
-		<Input
-			label="Peso a superar la próxima semana (kg)"
-			type="number"
-			bind:value={pesoObjetivoInput}
-			step={0.5}
-			stepper
-		/>
+			<Input
+				label="Carga a superar la próxima semana"
+				bind:value={pesoObjetivoTextoInput}
+				placeholder="Ej: balde + 2 discos"
+			/>
+		{:else}
+			<Input
+				label="Peso realizado hoy (kg)"
+				type="number"
+				bind:value={pesoRealizadoInput}
+				step={0.5}
+				stepper
+			/>
+
+			<Input
+				label="Peso a superar la próxima semana (kg)"
+				type="number"
+				bind:value={pesoObjetivoInput}
+				step={0.5}
+				stepper
+			/>
+		{/if}
 	</div>
 
 	<button

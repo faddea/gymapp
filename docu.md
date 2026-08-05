@@ -2,10 +2,10 @@
 
 ## Tech Stack
 
-- **Framework:** SvelteKit
-- **Styling:** Tailwind CSS (config con colores glass, overlay, tipografía Montserrat — ver `index.html` como referencia de diseño)
-- **Icons:** Lucide
-- **Mobile:** Capacitor (Android)
+- **Framework:** SvelteKit 2 (Svelte 5, runes mode)
+- **Styling:** Tailwind CSS v4 + glassmorphism (`.glass-card`), tipografía Montserrat
+- **Icons:** lucide-svelte
+- **Mobile:** Capacitor 8 (Android)
 - **Persistence:** localStorage
 
 ## Build Android (Capacitor)
@@ -39,78 +39,94 @@ npm run apk            # compila el APK debug (usa build-apk.sh)
 
 **Icono y splash:** se generan desde `static/icons/splash.png` (1024×1024) con `@capacitor/assets` (fuentes en `assets/`). El splash es oscuro (`#0a0a0a`) tanto en Android 12+ (`windowSplashScreenBackground`) como en versiones anteriores.
 
+**Icono de launcher (adaptativo):** se regenera desde `static/icons/splash.png` (todas las densidades en `ic_launcher_foreground.png`). El fondo adaptativo es oscuro `#0a0a0a` (`res/values/ic_launcher_background.xml`). Se eliminó el ícono por defecto de Capacitor (vector `drawable-v24/ic_launcher_foreground.xml`). El mismo `ic_launcher_foreground` es el que usa el splash de Android 12+ (`windowSplashScreenAnimatedIcon`).
+
+**Barras del sistema (edge-to-edge):**
+- `src/app.html` — viewport con `viewport-fit=cover` para que el WebView dibuje detrás de las barras del sistema.
+- `res/values/styles.xml` — `statusBarColor` y `navigationBarColor` transparentes; el tema de splash usa íconos claros (`windowLightStatusBar/NavigationBar = false`) sobre fondo oscuro.
+- Safe-area con `env(safe-area-inset-*)` en `src/routes/+layout.svelte` (padding superior) y `src/lib/components/BottomNav.svelte` (padding inferior) para que el contenido no quede bajo las barras.
+
+**Botón "atrás" físico de Android:** `@capacitor/app` está instalado y registrado (`npx cap sync`). El botón físico navega el historial del SPA; sin historial, cierra la app (comportamiento por defecto). Se usa `Capacitor.getPlatform()` para UI condicional en Android (p.ej. `agenda/[id]` oculta el botón "volver" en Android nativo).
+
+**Watch de Vite (dev):** `vite.config.ts` → `server.watch.ignored` excluye `.android-sdk/`, `.jdk/`, `.gradle/`, `android/` y `build/`. Sin esto, `npm run dev` agota el límite de watchers del sistema (`ENOSPC`).
+
 ### Nota sobre `~/.android`
 
 El directorio `~/.android/` del home (contiene `debug.keystore`, `analytics.settings`, `cache`) es **preexistente y ajeno a este proyecto** — no lo genera el build. Se deja como está: lo usa Gradle para firmar el APK de debug y también otros proyectos del equipo. **No borrar.**
+
+## Modo de Entrenamiento (Gym / Home)
+
+Selector en **Perfil** (Segmented Control "Gym | Home", persistido en `localStorage` vía `modoEntrenamientoStore`):
+
+- **Gym** → las cargas se registran en kg (input numérico con stepper).
+- **Home** → las cargas son texto libre (ej: "el balde con una pesa y un disco"), porque en casa no siempre se sabe el peso exacto.
+
+En el modelo, `Serie` guarda `pesoActual`/`pesoObjetivo` (kg) y además `pesoActualTexto`/`pesoObjetivoTexto` (descripción, modo Home). Los kg se conservan aunque se registre en Home, así no se pierde nada al cambiar de modo.
+
+La visualización usa `formatearCarga(serie, campo, modo)` (`src/lib/utils/carga.ts`): en modo Home muestra el texto si existe (si no, cae a `X kg`); en modo Gym siempre `X kg`. Aplica a `agenda/[id]` y `progreso/[id]`.
+
+## Estado del entrenamiento del día
+
+En la Home, el botón "Entrenar" abre un modal para marcar el entrenamiento como completado ("¿Terminaste el entrenamiento?").
+
+- `entrenamientoHechoStore` guarda un registro `{ [fecha]: true }` en `localStorage` (clave `hyper_entrenamiento_hecho`).
+- `entrenamientoHoyHecho` (derived) indica si ya se completó hoy (clave por fecha vía `getFechaClave()`, formato `YYYY-MM-DD`).
+- Al completarlo, el hero de la Home pasa a imagen de descanso (URL) y muestra "HOY · Hecho / Ya entrené hoy" hasta el día siguiente.
 
 ## Pantallas (Bottom Nav)
 
 | Icono | Ruta | Nombre | Descripción |
 |-------|------|--------|-------------|
-| home | `/` | Inicio | Widget del día, imagen motivacional. Si hay entrenamiento asignado al día actual, muestra card para empezar. Si no, mensaje "Hoy no tienes que entrenar". |
-| calendar | `/agenda` | Agenda | CRUD de días de rutina y ejercicios. Botón "+" crea un día (ej: Push Day). Cada día expande sus ejercicios. CRUD por ejercicio. |
-| trending-up | `/progreso` | Progreso | Cards de los días de rutina. Al entrar a un día, lista de ejercicios con peso anterior y peso objetivo. Se puede registrar nuevo peso. |
-| calendar-days | `/calendario` | Calendario | Vista semanal con los días asignados a cada rutina (Lunes = Push, Miércoles = Back, etc.). |
-| user | `/perfil` | Perfil | Configuración, cambio de tema claro/oscuro. |
-
-## Flujo de Workout (Anti-salteo)
-
-Secuencia guiada al tocar "Entrenar" en la Home:
-
-1. **Splash del ejercicio** — Título del ejercicio arriba, imagen cuadrada motivacional al centro, peso anterior y peso objetivo abajo (en chico), botón "INICIAR".
-2. **Ejecución** — Usuario hace el ejercicio, toca "LISTO" al terminar.
-3. **Descanso (3:00)** — Título "Descanso", imagen cuadrada, timer regresivo de 3:00, barra de progreso celeste que avanza con el tiempo.
-4. **Siguiente serie** — Vuelve a splash del mismo ejercicio (si tiene más series). (Siempre 2 series — Heavy Duty).
-5. **Descanso largo (5:00)** — Al terminar todas las series del ejercicio, descanso de 5:00 antes del siguiente ejercicio.
-6. **Siguiente ejercicio** — Repite desde paso 1.
-7. **Congratulations** — Al terminar todos los ejercicios del día: título, animación de confetis, imagen cuadrada, texto motivacional, tap para salir.
+| home | `/` | Inicio | Hero con imagen dinámica (por tipo de día; cardio con recorte superior `object-[0%_22%]`). "Entrenar" abre el modal de completar entrenamiento. Estado de descanso si no hay rutina hoy o si ya se entrenó. |
+| calendar | `/agenda` | Agenda | CRUD de días de rutina y ejercicios. Los días se ordenan por día de la semana (Lunes→Domingo). `agenda/[id]` **no muestra pesos** (solo etiqueta de series) y oculta el botón "volver" en Android nativo. |
+| trending-up | `/progreso` | Progreso | Cards de los días de rutina. Dentro de un día, cada ejercicio muestra la carga realizada y el objetivo (según modo Gym/Home) y permite registrar nuevo peso. |
+| calendar-days | `/calendario` | Calendario | Vista semanal con los días asignados a cada rutina. |
+| user | `/perfil` | Perfil | Configuración: tema claro/oscuro, peso corporal, y Segmented Control de Lugar de Entrenamiento (Gym/Home). |
 
 ## Estructura del Proyecto
 
 ```
 src/
 ├── routes/
-│   ├── +layout.svelte        # Layout con bottom nav y tema
-│   ├── +page.svelte          # Home — widget del día
+│   ├── +layout.svelte        # Layout con bottom nav, tema y safe-area
+│   ├── +layout.ts            # ssr = false (CSR-only)
+│   ├── +page.svelte          # Home — widget del día + modal "terminaste el entrenamiento"
 │   ├── agenda/
-│   │   ├── +page.svelte      # CRUD de días de rutina
+│   │   ├── +page.svelte      # CRUD de días (ordenados por día de semana)
 │   │   └── [id]/
-│   │       └── +page.svelte  # Ejercicios de un día
+│   │       └── +page.svelte  # Ejercicios de un día (sin pesos, sin "volver" en Android)
 │   ├── progreso/
 │   │   ├── +page.svelte      # Cards de días
 │   │   └── [id]/
-│   │       └── +page.svelte  # Pesos por ejercicio
+│   │       └── +page.svelte  # Cargas por ejercicio (Gym/Home)
 │   ├── calendario/
 │   │   └── +page.svelte      # Vista semanal
-│   ├── perfil/
-│   │   └── +page.svelte      # Config y tema
-│   └── workout/
-│       └── [diaId]/
-│           └── +page.svelte  # Flujo guiado de entrenamiento
+│   └── perfil/
+│       └── +page.svelte      # Config, tema, peso corporal, modo Gym/Home
 ├── lib/
 │   ├── stores/
-│   │   └── entrenamiento.ts  # Stores (días, ejercicios, pesos, progreso)
+│   │   └── entrenamiento.ts  # Stores: días, modo Gym/Home, tema, peso corporal, entrenamiento del día
+│   ├── utils/
+│   │   ├── carga.ts          # formatearCarga (texto o kg según modo)
+│   │   └── imagenes.ts       # getDiaImagen (imágenes por tipo de rutina)
 │   ├── components/
+│   │   ├── BottomNav.svelte
+│   │   ├── Input.svelte
+│   │   ├── Modal.svelte
+│   │   ├── MobilityModal.svelte
 │   │   ├── NavBar.svelte
-│   │   ├── DiaCard.svelte
-│   │   ├── EjercicioCard.svelte
-│   │   ├── ThemeToggle.svelte
-│   │   ├── WorkoutTimer.svelte    # Timer 3:00 / 5:00
-│   │   ├── ProgressBar.svelte     # Barra de progreso celeste
-│   │   └── ConfettiOverlay.svelte  # Animación de confetis
+│   │   ├── SegmentedControl.svelte
+│   │   ├── Select.svelte
+│   │   └── ThemeToggle.svelte
 │   └── types/
-│       └── index.ts           # Tipos: Dia, Ejercicio, Serie, etc.
-└── app.html
+│       └── index.ts          # Tipos: Dia, Ejercicio, Serie, ModoEntrenamiento
+└── app.html                  # viewport-fit=cover, tema precargado
 ```
 
-## Diseño (Referencia index.html)
-
-El prototipo `index.html` define la línea visual a seguir:
+## Diseño
 
 - **Fuente:** Montserrat (Google Fonts)
-- **Estilo:** Glassmorphism — `backdrop-filter: blur(12px)`, bordes semitransparentes, sombra suave
-- **Colores glass:** `rgba(255,255,255,0.4)` en light, `rgba(0,0,0,0.55)` en dark
-- **Modo oscuro:** Clase `.dark` en `<html>`, transiciones suaves
-- **Iconos:** Lucide con carga dinámica (`lucide.createIcons()`)
+- **Estilo:** Glassmorphism — `backdrop-filter: blur(12px)`, bordes semitransparentes, sombra suave (`.glass-card` en `src/app.css`)
+- **Modo oscuro:** Clase `.dark` en `<html>` con `@custom-variant dark` en Tailwind v4; el tema se precarga en `app.html` según `localStorage`/`prefers-color-scheme`
+- **Iconos:** lucide-svelte
 - **Imágenes:** Cuadradas, con overlay degradado y efecto de mezcla
-

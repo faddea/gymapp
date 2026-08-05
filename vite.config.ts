@@ -13,5 +13,16 @@ export default defineConfig({
 			},
 			adapter: adapter({ fallback: 'index.html' })
 		})
-	]
+	],
+	server: {
+		watch: {
+			ignored: [
+				'**/.android-sdk/**',
+				'**/.jdk/**',
+				'**/.gradle/**',
+				'**/android/**',
+				'**/build/**'
+			]
+		}
+	}
 });

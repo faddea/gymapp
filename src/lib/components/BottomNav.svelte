@@ -11,7 +11,7 @@
 	];
 </script>
 
-<footer class="glass-card fixed bottom-0 z-40 w-full max-w-md left-1/2 -translate-x-1/2 px-4 py-2.5 flex items-center justify-around rounded-t-3xl border-t border-black/10 dark:border-white/10 shadow-lg backdrop-blur-md">
+<footer class="glass-card fixed bottom-0 z-40 w-full max-w-md left-1/2 -translate-x-1/2 px-4 pt-2.5 pb-[calc(0.625rem+env(safe-area-inset-bottom))] flex items-center justify-around rounded-t-3xl border-t border-black/10 dark:border-white/10 shadow-lg backdrop-blur-md">
 	{#each navItems as item}
 		{@const isActive = $page.url.pathname === item.href || ($page.url.pathname.startsWith(item.href) && item.href !== '/')}
 		{@const Icon = item.icon}

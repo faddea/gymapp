@@ -1,9 +1,10 @@
 <script lang="ts">
-	import { User, ShieldCheck, Flame, Dumbbell, Award, Pencil } from 'lucide-svelte';
+	import { User, ShieldCheck, Flame, Dumbbell, Award, Pencil, Home } from 'lucide-svelte';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import SegmentedControl from '$lib/components/SegmentedControl.svelte';
 	import Modal from '$lib/components/Modal.svelte';
 	import Input from '$lib/components/Input.svelte';
-	import { pesoCorporalStore } from '$lib/stores/entrenamiento';
+	import { pesoCorporalStore, modoEntrenamientoStore } from '$lib/stores/entrenamiento';
 
 	let pesoBtn = $state<HTMLButtonElement | null>(null);
 	let showPesoModal = $state(false);
@@ -91,6 +92,21 @@
 			</span>
 			<span class="font-extrabold">3-4 días / semana</span>
 		</div>
+	</div>
+
+	<!-- Lugar de Entrenamiento -->
+	<div class="glass-card p-4 rounded-2xl flex flex-col gap-3">
+		<div>
+			<span class="block font-bold text-xs tracking-tight">Lugar de Entrenamiento</span>
+			<span class="text-[11px] opacity-60">Elige cómo registrar las cargas</span>
+		</div>
+		<SegmentedControl
+			options={[
+				{ value: 'gym', label: 'Gym', icon: Dumbbell },
+				{ value: 'home', label: 'Home', icon: Home }
+			]}
+			bind:value={$modoEntrenamientoStore}
+		/>
 	</div>
 
 	<!-- Ajustes -->
